@@ -171,6 +171,20 @@ async function runTests() {
   assert.ok(ms < 2000, `Finance queries exceeded 2-second SLA! Took: ${ms}ms`);
   console.log(`✓ Finance query completed in ${ms} ms (SLA < 2000ms PASSED)`);
 
+  // Test 11: Transactional Email Notification Service & Audit Logs
+  console.log('Test 11: Transactional Email Notification Service');
+  const { sendPasswordResetEmail } = require('../src/services/emailService');
+  const emailRes = await sendPasswordResetEmail({
+    to: 'customer_store@gmail.com',
+    resetToken: 'test_token_abc123',
+    resetLink: '/reset-password.html?token=test_token_abc123'
+  });
+  assert.strictEqual(emailRes.success, true, 'Email dispatch should succeed');
+  const emailLog = db.prepare('SELECT * FROM email_logs WHERE recipient = ? ORDER BY created_at DESC').get('customer_store@gmail.com');
+  assert.ok(emailLog, 'Email log should be recorded in database');
+  assert.strictEqual(emailLog.status, 'SENT', 'Email log status should be SENT');
+  console.log(`✓ Transactional Email dispatched and logged: ${emailLog.template} (ID: ${emailLog.id})`);
+
   console.log('\n--- ALL VERIFICATION SUITE TESTS PASSED SUCCESSFULLY! ---');
 }
 

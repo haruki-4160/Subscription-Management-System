@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const db = require('../db');
 const { ADMIN_EMAIL, validatePassword, generateToken, authMiddleware } = require('../auth');
+const { sendPasswordResetEmail } = require('../services/emailService');
 
 const router = express.Router();
 
@@ -98,7 +99,7 @@ router.post('/login', (req, res) => {
 });
 
 // Forgot Password
-router.post('/forgot-password', (req, res) => {
+router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ error: 'Email is required.' });
@@ -122,8 +123,21 @@ router.post('/forgot-password', (req, res) => {
 
   // In demo environment, we return the reset link directly in response and log it
   const resetLink = `/reset-password.html?token=${resetToken}&email=${encodeURIComponent(cleanEmail)}`;
+
+  let emailResult = { success: false };
+  try {
+    emailResult = await sendPasswordResetEmail({
+      to: cleanEmail,
+      resetToken,
+      resetLink
+    });
+  } catch (e) {
+    console.error('Password reset email dispatch error:', e);
+  }
   res.json({
-    message: 'Password reset link generated and dispatched.',
+    message: 'Password reset link generated and dispatched via email.',
+    email_dispatched: emailResult.success,
+    preview_url: emailResult.previewUrl || null,
     demo_reset_link: resetLink
   });
 });

@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware, requireStaffOrAdmin } = require('../auth');
 const { calculateNextDate } = require('../billingEngine');
+const { sendPaymentReceiptEmail, sendDunningNoticeEmail } = require('../services/emailService');
 
 const router = express.Router();
 router.use(authMiddleware, requireStaffOrAdmin);
@@ -171,7 +172,7 @@ router.patch('/invoices/:id/status', (req, res) => {
 });
 
 // ================= Payments Recording =================
-router.post('/payments', (req, res) => {
+router.post('/payments', async (req, res) => {
   const { invoice_id, payment_method, amount, note } = req.body;
 
   if (!invoice_id || !payment_method || amount === undefined) {
@@ -208,10 +209,50 @@ router.post('/payments', (req, res) => {
 
   recordPaymentTx();
 
+  // Dispatch payment receipt email
+  const customer = db.prepare('SELECT email FROM users WHERE id = ?').get(invoice.customer_id);
+  if (customer && customer.email) {
+    sendPaymentReceiptEmail({
+      to: customer.email,
+      payment: { amount: payAmount, payment_method, transaction_reference: txRef },
+      invoice
+    }).catch(err => console.error('[StaffRoutes] Payment email error:', err.message));
+  }
+
   res.status(201).json({
     message: 'Payment recorded successfully',
     payment_id: paymentId,
     transaction_reference: txRef
+  });
+});
+
+// Dispatch manual/automated dunning notice for overdue invoice
+router.post('/invoices/:id/send-dunning', async (req, res) => {
+  const invoice = db.prepare(`
+    SELECT i.*, u.email as customer_email 
+    FROM invoices i 
+    JOIN users u ON i.customer_id = u.id 
+    WHERE i.id = ?
+  `).get(req.params.id);
+
+  if (!invoice) {
+    return res.status(404).json({ error: 'Invoice not found.' });
+  }
+
+  const today = new Date();
+  const due = new Date(invoice.due_date);
+  const diffDays = Math.max(1, Math.ceil((today - due) / (1000 * 60 * 60 * 24)));
+
+  const result = await sendDunningNoticeEmail({
+    to: invoice.customer_email,
+    invoice,
+    daysOverdue: diffDays
+  });
+
+  res.json({
+    message: `Dunning notice dispatched to ${invoice.customer_email}`,
+    preview_url: result.previewUrl || null,
+    status: result.success ? 'SENT' : 'FAILED'
   });
 });
 

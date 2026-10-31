@@ -83,6 +83,7 @@ function updateNavbar() {
       <button class="nav-btn" id="nav-btn-subscriptions" onclick="navigateTo('subscriptions')">Subscriptions</button>
       <button class="nav-btn" id="nav-btn-invoices" onclick="navigateTo('invoices')">Invoices</button>
       <button class="nav-btn" id="nav-btn-finance" onclick="navigateTo('finance')">Finance Analytics</button>
+      <button class="nav-btn" id="nav-btn-email-logs" onclick="navigateTo('email-logs')">📧 Email Logs</button>
     `;
     if (state.currentView === 'guest') navigateTo('admin-autoinvoice');
   } else if (state.user.role === 'STAFF') {
@@ -90,6 +91,7 @@ function updateNavbar() {
       <button class="nav-btn" id="nav-btn-subscriptions" onclick="navigateTo('subscriptions')">Quotes & Subscriptions</button>
       <button class="nav-btn" id="nav-btn-invoices" onclick="navigateTo('invoices')">Invoices</button>
       <button class="nav-btn" id="nav-btn-finance" onclick="navigateTo('finance')">Finance Summary</button>
+      <button class="nav-btn" id="nav-btn-email-logs" onclick="navigateTo('email-logs')">📧 Email Logs</button>
     `;
     if (state.currentView === 'guest') navigateTo('subscriptions');
   } else {
@@ -121,6 +123,7 @@ function navigateTo(viewId) {
     case 'subscriptions': loadSubscriptionsList(); break;
     case 'invoices': loadInvoicesList(); break;
     case 'finance': loadFinanceAnalytics(); break;
+    case 'email-logs': loadEmailLogs(); break;
     case 'customer': loadCustomerPortal(); break;
   }
 }
@@ -609,6 +612,7 @@ async function loadInvoicesList() {
           <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">Print</button>
           ${inv.status === 'Draft' ? `<button class="btn btn-primary btn-sm" onclick="updateInvoiceStatus('${inv.id}', 'Confirmed')">Confirm</button>` : ''}
           ${inv.status !== 'Paid' && inv.status !== 'Cancelled' ? `<button class="btn btn-danger btn-sm" onclick="updateInvoiceStatus('${inv.id}', 'Cancelled')">Cancel</button>` : ''}
+          ${inv.status === 'Confirmed' ? `<button class="btn btn-warning btn-sm" onclick="sendInvoiceReminder('${inv.id}')" title="Send Dunning Notice Email">📧 Remind</button>` : ''}
         </td>
       </tr>
     `).join('') : `<tr><td colspan="9" style="text-align: center; color: #94a3b8;">No invoices created yet. Billing days generate them automatically.</td></tr>`;
@@ -973,6 +977,47 @@ async function executeDemoPayment() {
     closeModal('modal-customer-pay');
     loadCustomerPortal();
   } catch (err) {}
+}
+
+// ================= Transactional Email Logs & Reminders =================
+async function loadEmailLogs() {
+  const tbody = document.getElementById('email-logs-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748b;">Loading logs...</td></tr>';
+
+  try {
+    const res = await apiCall('/admin/email-logs');
+    if (!res.email_logs || res.email_logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748b;">No transactional emails dispatched yet. Trigger an action (password reset, billing run, or payment) to view records.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = res.email_logs.map(log => `
+      <tr>
+        <td style="font-weight: 600; color: #1e293b;">${escapeHtml(log.recipient)}</td>
+        <td><span class="role-badge role-ADMIN" style="font-size: 0.75rem;">${log.template}</span></td>
+        <td style="color: #475569;">${escapeHtml(log.subject)}</td>
+        <td>
+          <span class="status-pill status-${log.status === 'SENT' ? 'Active' : 'Cancelled'}">${log.status}</span>
+        </td>
+        <td style="font-size: 0.85rem; color: #64748b;">${new Date(log.created_at).toLocaleString()}</td>
+        <td>
+          ${log.preview_url ? `<a href="${log.preview_url}" target="_blank" class="btn btn-secondary btn-sm" style="text-decoration: none;">🔍 View Email</a>` : '<span style="color: #94a3b8; font-size: 0.8rem;">Logged via SMTP</span>'}
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color: #ef4444; text-align: center;">Failed loading email logs: ${err.message}</td></tr>`;
+  }
+}
+
+async function sendInvoiceReminder(invId) {
+  try {
+    const res = await apiCall(`/staff/invoices/${invId}/send-dunning`, 'POST');
+    showToast(res.message, 'success');
+  } catch (err) {
+    showToast('Failed to dispatch reminder: ' + err.message, 'error');
+  }
 }
 
 // Initial Bootstrap

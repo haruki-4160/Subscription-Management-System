@@ -304,4 +304,16 @@ router.post('/automated-invoicing/run-batch', (req, res) => {
   }
 });
 
+// ================= Email Audit Logs =================
+router.get('/email-logs', (req, res) => {
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit || 50)));
+  const logs = db.prepare(`
+    SELECT * FROM email_logs 
+    ORDER BY created_at DESC 
+    LIMIT ?
+  `).all(limit);
+
+  res.json({ email_logs: logs });
+});
+
 module.exports = router;

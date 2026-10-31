@@ -2,6 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const db = require('../db');
 const { authMiddleware } = require('../auth');
+const { sendPaymentReceiptEmail } = require('../services/emailService');
 
 const router = express.Router();
 router.use(authMiddleware);
@@ -99,7 +100,7 @@ router.get('/my-invoices', (req, res) => {
 });
 
 // Demo Payment Gateway Endpoint (Supports QR, UPI, NETBANKING, CARD)
-router.post('/pay/:invoice_id', (req, res) => {
+router.post('/pay/:invoice_id', async (req, res) => {
   const { payment_method, note } = req.body;
   const invoice = db.prepare(`
     SELECT * FROM invoices 
@@ -142,6 +143,17 @@ router.post('/pay/:invoice_id', (req, res) => {
 
   recordTx();
 
+  let emailResult = { success: false };
+  try {
+    emailResult = await sendPaymentReceiptEmail({
+      to: req.user.email,
+      payment: { amount: remaining, payment_method: method, transaction_reference: txRef },
+      invoice
+    });
+  } catch (err) {
+    console.error('[CustomerRoutes] Payment receipt email error:', err.message);
+  }
+
   res.json({
     message: 'Payment completed successfully!',
     payment: {
@@ -149,7 +161,9 @@ router.post('/pay/:invoice_id', (req, res) => {
       amount: remaining,
       method,
       reference: txRef,
-      status: 'SUCCESS'
+      status: 'SUCCESS',
+      email_receipt_dispatched: emailResult.success,
+      preview_url: emailResult.previewUrl || null
     }
   });
 });

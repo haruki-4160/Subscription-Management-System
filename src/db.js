@@ -202,6 +202,18 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_inv_sub_cycle ON invoices(subscription_id, billing_cycle_start, billing_cycle_end);
     CREATE INDEX IF NOT EXISTS idx_payments_invoice ON payments(invoice_id);
     CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(payment_date);
+
+    CREATE TABLE IF NOT EXISTS email_logs (
+      id TEXT PRIMARY KEY,
+      recipient TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      template TEXT NOT NULL,
+      status TEXT NOT NULL,
+      preview_url TEXT,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX IF NOT EXISTS idx_email_logs_recipient ON email_logs(recipient);
   `);
 
   // Ensure designated Admin user exists

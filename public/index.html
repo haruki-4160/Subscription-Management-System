@@ -449,6 +449,39 @@
       </div>
     </section>
 
+    <!-- ADMIN/STAFF: Transactional Email Delivery Logs -->
+    <section id="view-email-logs" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">📧 Transactional Email Logs & Delivery Centre</h2>
+            <p style="color: #64748b; font-size: 0.9rem; margin-top: 0.25rem;">
+              Auditable dispatch records for Password Resets, Invoice Notices, Payment Receipts, and Overdue Dunning.
+            </p>
+          </div>
+          <button class="btn btn-secondary" onclick="loadEmailLogs()">🔄 Refresh Email Logs</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Recipient</th>
+                <th>Template</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Sent At</th>
+                <th>Inspection / Preview</th>
+              </tr>
+            </thead>
+            <tbody id="email-logs-table-body">
+              <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Loading email logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <!-- CUSTOMER PORTAL: My Subscriptions & Invoices -->
     <section id="view-customer" class="view-section">
       <div class="card">

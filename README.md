@@ -47,6 +47,7 @@ For additional mock data, see [`README_TEST_DATA.md`](README_TEST_DATA.md).
 ---
 
 ## 📦 Features
+- **Transactional Email Service:** Automated emails with live HTML previews for Password Resets, New Invoices, Payment Receipts, and Overdue Dunning Notices (powered by Nodemailer & Ethereal/SMTP fallback).
 - **Subscription Lifecycle FSM:** Draft, Active, Paused, Canceled, Expired states with grace periods and dunning cycles.
 - **Product & Variant Pricing:** Flexible billing cadences, custom variant pricing adjustments.
 - **Invoice & Payment Processing:** Automated invoice generation, partial payments, Stripe/wire reconciliation.

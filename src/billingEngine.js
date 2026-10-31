@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const db = require('./db');
+const { sendInvoiceIssuedEmail } = require('./services/emailService');
 
 function calculateNextDate(currentDateStr, interval) {
   const d = new Date(currentDateStr || new Date());
@@ -31,8 +32,9 @@ function runAutomatedBillingBatch() {
   
   // Find all active subscriptions due for billing
   const dueSubscriptions = db.prepare(`
-    SELECT s.*, p.billing_interval, p.auto_close_on_end, p.cost as plan_cost
+    SELECT s.*, u.email as customer_email, p.billing_interval, p.auto_close_on_end, p.cost as plan_cost
     FROM subscriptions s
+    JOIN users u ON s.customer_id = u.id
     JOIN plans p ON s.plan_id = p.id
     WHERE s.status = 'Active' 
       AND (s.next_billing_date IS NULL OR s.next_billing_date <= ?)
@@ -41,6 +43,7 @@ function runAutomatedBillingBatch() {
   let invoicesCreated = 0;
   let totalBilled = 0;
   let duplicateSkips = 0;
+  const invoicesToNotify = [];
 
   const activeTaxes = db.prepare('SELECT * FROM tax_rules WHERE is_active = 1').all();
   const taxRateSum = activeTaxes.reduce((sum, t) => sum + t.rate_percentage, 0);
@@ -156,6 +159,11 @@ function runAutomatedBillingBatch() {
 
       invoicesCreated++;
       totalBilled += finalTotal;
+      invoicesToNotify.push({
+        customer_email: sub.customer_email,
+        invoice: { id: invoiceId, invoice_number: invoiceNum, total_amount: finalTotal, due_date: dueDate, subtotal, discount_total: discountTotal, tax_total: taxTotal },
+        items: invoiceLineItems
+      });
     }
 
     // Log the batch
@@ -169,6 +177,17 @@ function runAutomatedBillingBatch() {
   });
 
   processBatch();
+
+  // Asynchronously dispatch transactional invoice notifications
+  for (const n of invoicesToNotify) {
+    if (n.customer_email) {
+      sendInvoiceIssuedEmail({
+        to: n.customer_email,
+        invoice: n.invoice,
+        items: n.items
+      }).catch(err => console.error('[BillingEngine] Invoice email dispatch error:', err.message));
+    }
+  }
 
   return {
     batchId,

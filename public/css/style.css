@@ -505,3 +505,30 @@ input:focus, select:focus, textarea:focus {
   font-size: 0.8rem;
   color: #333;
 }
+
+/* Print Media Styles */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+  }
+  .navbar, .btn, .modal, .toast-container, nav, button {
+    display: none !important;
+  }
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  .table th, .table td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 10px !important;
+    color: #000000 !important;
+  }
+}
+}

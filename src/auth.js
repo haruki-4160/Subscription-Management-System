@@ -35,11 +35,12 @@ function generateToken(user) {
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  const token = (authHeader && authHeader.startsWith('Bearer ')) ? authHeader.split(' ')[1] : (req.query ? req.query.token : null);
+  if (!token) {
     return res.status(401).json({ error: 'Authentication required. No token provided.' });
   }
 
-  const token = authHeader.split(' ')[1];
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = db.prepare('SELECT id, email, role FROM users WHERE id = ?').get(decoded.id);

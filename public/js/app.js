@@ -523,6 +523,7 @@ async function loadSubscriptionsList() {
         <td><strong>${s.next_billing_date || 'N/A'}</strong></td>
         <td><span class="status-pill status-${s.status}">${s.status}</span></td>
         <td>
+          <button class="btn btn-secondary btn-sm" onclick="downloadQuotationPDF('${s.id}')" title="Download Official Quote/Agreement PDF" style="margin-right: 4px;">📄 Quote PDF</button>
           <select onchange="updateSubscriptionStatus('${s.id}', this.value)" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">
             <option value="">Transition &rarr;</option>
             <option value="Draft" ${s.status === 'Draft' ? 'disabled' : ''}>Draft</option>
@@ -609,7 +610,8 @@ async function loadInvoicesList() {
         <td style="color: #16a34a;">$${Number(inv.paid_amount).toFixed(2)}</td>
         <td><span class="status-pill status-${inv.status}">${inv.status}</span></td>
         <td>
-          <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">Print</button>
+          <button class="btn btn-primary btn-sm" onclick="downloadInvoicePDF('${inv.id}')" title="Download Official Invoice PDF">📄 PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')" title="Printable HTML Invoice">🖨️ Print</button>
           ${inv.status === 'Draft' ? `<button class="btn btn-primary btn-sm" onclick="updateInvoiceStatus('${inv.id}', 'Confirmed')">Confirm</button>` : ''}
           ${inv.status !== 'Paid' && inv.status !== 'Cancelled' ? `<button class="btn btn-danger btn-sm" onclick="updateInvoiceStatus('${inv.id}', 'Cancelled')">Cancel</button>` : ''}
           ${inv.status === 'Confirmed' ? `<button class="btn btn-warning btn-sm" onclick="sendInvoiceReminder('${inv.id}')" title="Send Dunning Notice Email">📧 Remind</button>` : ''}
@@ -657,49 +659,160 @@ async function handleRecordPayment(e) {
   } catch (err) {}
 }
 
+function downloadInvoicePDF(id, isCustomer = false) {
+  const url = isCustomer 
+    ? '/api/customer/my-invoices/' + id + '/pdf?token=' + encodeURIComponent(state.token)
+    : '/api/staff/invoices/' + id + '/pdf?token=' + encodeURIComponent(state.token);
+  window.open(url, '_blank');
+}
+
+function downloadQuotationPDF(id, isCustomer = false) {
+  const url = isCustomer 
+    ? '/api/customer/my-subscriptions/' + id + '/pdf?token=' + encodeURIComponent(state.token)
+    : '/api/staff/quotations/' + id + '/pdf?token=' + encodeURIComponent(state.token);
+  window.open(url, '_blank');
+}
+
 function printInvoice(id) {
-  const inv = state.cache.invoices.find(i => i.id === id);
+  const inv = (state.cache.invoices || []).find(i => i.id === id);
   if (!inv) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  const isPaid = inv.status === 'Paid';
+  const isOverdue = !isPaid && inv.due_date && inv.due_date < today;
+  const statusLabel = isPaid ? 'PAID' : (isOverdue ? 'OVERDUE' : inv.status.toUpperCase());
+  const statusColor = isPaid ? '#10b981' : (isOverdue ? '#ef4444' : '#0284c7');
+  const balanceDue = Math.max(0, inv.total_amount - (inv.paid_amount || 0));
+
+  const itemsHtml = (inv.items && inv.items.length ? inv.items : [{ product_name: 'Subscription Plan Services', quantity: 1, unit_price: inv.subtotal, total_amount: inv.total_amount }]).map(it => `
+    <tr>
+      <td><strong>${it.product_name}</strong></td>
+      <td style="text-align: center;">${it.quantity || 1}</td>
+      <td style="text-align: right;">$${Number(it.unit_price || 0).toFixed(2)}</td>
+      <td style="text-align: right; color: #64748b;">
+        ${it.discount_amount > 0 ? '-$' + Number(it.discount_amount).toFixed(2) : (it.tax_amount > 0 ? '+$' + Number(it.tax_amount).toFixed(2) : '$0.00')}
+      </td>
+      <td style="text-align: right; font-weight: 700;">$${Number(it.total_amount || 0).toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  const discountRow = inv.discount_total > 0 ? `
+    <div class="summary-line" style="color: #10b981;">
+      <span>Discount:</span>
+      <span>-$${Number(inv.discount_total).toFixed(2)}</span>
+    </div>
+  ` : '';
+
+  const taxRow = inv.tax_total > 0 ? `
+    <div class="summary-line">
+      <span>Tax (GST/VAT):</span>
+      <span>+$${Number(inv.tax_total).toFixed(2)}</span>
+    </div>
+  ` : '';
 
   const w = window.open('', '_blank');
   w.document.write(`
+    <!DOCTYPE html>
     <html>
-      <head><title>Invoice ${inv.invoice_number}</title></head>
-      <body style="font-family: sans-serif; padding: 2rem;">
-        <h2>RECUR SMS INVOICE</h2>
-        <p><strong>Invoice Number:</strong> ${inv.invoice_number}</p>
-        <p><strong>Customer:</strong> ${inv.customer_email}</p>
-        <p><strong>Issue Date:</strong> ${inv.issue_date} | <strong>Due Date:</strong> ${inv.due_date}</p>
-        <p><strong>Status:</strong> ${inv.status}</p>
-        <hr>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+      <head>
+        <title>Invoice ${inv.invoice_number} — RECUR SMS</title>
+        <style>
+          * { box-sizing: border-box; }
+          body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1e293b; padding: 2.5rem; margin: 0; background: #fff; }
+          .header-row { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+          .brand { font-size: 1.75rem; font-weight: 800; color: #0284c7; }
+          .subbrand { font-size: 0.85rem; color: #64748b; margin-top: 0.2rem; }
+          .badge { background: ${statusColor}; color: #fff; font-weight: 700; font-size: 0.85rem; padding: 6px 16px; border-radius: 9999px; text-transform: uppercase; }
+          .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; font-size: 0.9rem; }
+          .meta-box h4 { font-size: 0.75rem; text-transform: uppercase; color: #64748b; margin: 0 0 0.5rem 0; letter-spacing: 0.5px; }
+          .meta-box p { margin: 0.25rem 0; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+          th { background: #0f172a; color: #fff; font-size: 0.75rem; text-transform: uppercase; padding: 10px 12px; }
+          td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+          tr:nth-child(even) { background: #f8fafc; }
+          .summary-card { width: 280px; margin-left: auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; }
+          .summary-line { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; color: #64748b; }
+          .summary-total { display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 800; color: #0284c7; border-top: 1px solid #cbd5e1; margin-top: 8px; padding-top: 8px; }
+          .summary-balance { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 700; color: ${balanceDue > 0 ? '#ef4444' : '#10b981'}; margin-top: 4px; }
+          .footer { margin-top: 3rem; border-top: 1px solid #e2e8f0; padding-top: 1rem; font-size: 0.75rem; color: #94a3b8; line-height: 1.5; }
+          .print-actions { background: #f1f5f9; padding: 1rem; border-radius: 8px; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center; }
+          @media print {
+            .print-actions { display: none !important; }
+            body { padding: 0 !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-actions">
+          <button onclick="window.print()" style="background: #0284c7; color: #fff; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 600; cursor: pointer;">🖨️ Print / Save as PDF</button>
+          <span style="font-size: 0.85rem; color: #64748b;">(Or use your browser's Print dialog to export as PDF)</span>
+        </div>
+
+        <div class="header-row">
+          <div>
+            <div class="brand">⚡ RECUR SMS</div>
+            <div class="subbrand">Subscription Management & Recurring Billing Platform</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-top: 4px;">Brightloop Software Inc. • billing@recursms.com</div>
+          </div>
+          <div style="text-align: right;">
+            <span class="badge">${statusLabel}</span>
+            <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-top: 0.6rem;">${inv.invoice_number}</div>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-box">
+            <h4>Billed To</h4>
+            <p><strong>${inv.customer_email || 'Customer'}</strong></p>
+            <p style="color: #64748b;">Customer ID: ${inv.customer_id}</p>
+            ${inv.subscription_number ? '<p style="color: #64748b;">Subscription: ' + inv.subscription_number + '</p>' : ''}
+            ${inv.billing_cycle_start ? '<p style="color: #64748b;">Cycle: ' + inv.billing_cycle_start + ' to ' + inv.billing_cycle_end + '</p>' : ''}
+          </div>
+          <div class="meta-box" style="text-align: right;">
+            <h4>Invoice Details</h4>
+            <p><strong>Issue Date:</strong> ${inv.issue_date}</p>
+            <p><strong>Due Date:</strong> ${inv.due_date}</p>
+            <p style="color: #64748b;">Terms: Immediate / Net 7</p>
+          </div>
+        </div>
+
+        <table>
           <thead>
-            <tr style="background: #f1f5f9;">
-              <th style="padding: 0.5rem; text-align: left;">Product</th>
-              <th style="padding: 0.5rem; text-align: right;">Qty</th>
-              <th style="padding: 0.5rem; text-align: right;">Unit Price</th>
-              <th style="padding: 0.5rem; text-align: right;">Amount</th>
+            <tr>
+              <th style="text-align: left;">Item Description</th>
+              <th style="text-align: center; width: 60px;">Qty</th>
+              <th style="text-align: right; width: 100px;">Unit Price</th>
+              <th style="text-align: right; width: 90px;">Tax / Disc</th>
+              <th style="text-align: right; width: 110px;">Total</th>
             </tr>
           </thead>
           <tbody>
-            ${(inv.items || []).map(it => `
-              <tr>
-                <td style="padding: 0.5rem; border-bottom: 1px solid #e2e8f0;">${it.product_name}</td>
-                <td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid #e2e8f0;">${it.quantity}</td>
-                <td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid #e2e8f0;">$${Number(it.unit_price).toFixed(2)}</td>
-                <td style="padding: 0.5rem; text-align: right; border-bottom: 1px solid #e2e8f0;">$${Number(it.total_amount).toFixed(2)}</td>
-              </tr>
-            `).join('')}
+            ${itemsHtml}
           </tbody>
         </table>
-        <div style="text-align: right; margin-top: 1.5rem;">
-          <p>Subtotal: $${Number(inv.subtotal).toFixed(2)}</p>
-          <p>Discounts: -$${Number(inv.discount_total).toFixed(2)}</p>
-          <p>Taxes: +$${Number(inv.tax_total).toFixed(2)}</p>
-          <h3>Total Due: $${Number(inv.total_amount).toFixed(2)}</h3>
-          <p style="color: green;">Total Paid: $${Number(inv.paid_amount).toFixed(2)}</p>
+
+        <div class="summary-card">
+          <div class="summary-line">
+            <span>Subtotal:</span>
+            <span>$${Number(inv.subtotal || inv.total_amount).toFixed(2)}</span>
+          </div>
+          ${discountRow}
+          ${taxRow}
+          <div class="summary-total">
+            <span>Total Due:</span>
+            <span>$${Number(inv.total_amount).toFixed(2)}</span>
+          </div>
+          <div class="summary-balance">
+            <span>Balance Due:</span>
+            <span>$${balanceDue.toFixed(2)}</span>
+          </div>
         </div>
-        <script>window.print();</script>
+
+        <div class="footer">
+          <strong>Payment Remittance:</strong> Silicon Valley Commercial Bank &bull; Routing: 121000358 &bull; Account: 9876543210<br>
+          Please include invoice number in wire details. Thank you for your partnership with Brightloop RECUR SMS.
+        </div>
       </body>
     </html>
   `);
@@ -852,6 +965,9 @@ async function loadCustomerPortal() {
       apiCall('/customer/my-invoices')
     ]);
 
+    state.cache.invoices = invData.invoices;
+    state.cache.subscriptions = subData.subscriptions;
+
     // Render Subscriptions
     const subTbody = document.getElementById('customer-subs-tbody');
     subTbody.innerHTML = subData.subscriptions.length ? subData.subscriptions.map(s => `
@@ -862,7 +978,7 @@ async function loadCustomerPortal() {
         <td><strong>${s.next_billing_date || 'N/A'}</strong></td>
         <td><span class="status-pill status-${s.status}">${s.status}</span></td>
         <td>
-          ${s.status === 'Active' && s.allow_pause ? `<button class="btn btn-secondary btn-sm" onclick="handleCustomerSubAction('${s.id}', 'pause')">Pause</button>` : ''}
+          <button class="btn btn-secondary btn-sm" onclick="downloadQuotationPDF('${s.id}', true)" title="Download Agreement PDF" style="margin-right: 4px;">📄 Agreement</button> ${s.status === 'Active' && s.allow_pause ? `<button class="btn btn-secondary btn-sm" onclick="handleCustomerSubAction('${s.id}', 'pause')">Pause</button>` : ''}
           ${s.status === 'Draft' ? `<button class="btn btn-primary btn-sm" onclick="handleCustomerSubAction('${s.id}', 'resume')">Resume</button>` : ''}
           ${s.allow_early_close && s.status !== 'Closed' ? `<button class="btn btn-danger btn-sm" onclick="handleCustomerSubAction('${s.id}', 'cancel')">Cancel</button>` : ''}
         </td>
@@ -882,7 +998,7 @@ async function loadCustomerPortal() {
         <td>
           ${inv.status !== 'Paid' && inv.status !== 'Cancelled' 
             ? `<button class="btn btn-primary btn-sm" onclick="openDemoPayment('${inv.id}', '${inv.invoice_number}', ${(inv.total_amount - inv.paid_amount)})">Pay Now</button>`
-            : `<button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">Receipt</button>`}
+            : `<button class="btn btn-primary btn-sm" onclick="downloadInvoicePDF('${inv.id}', true)" title="Download Official Invoice PDF">📄 PDF</button> <button class="btn btn-secondary btn-sm" onclick="printInvoice('${inv.id}')">Receipt</button>`}
         </td>
       </tr>
     `).join('') : `<tr><td colspan="7" style="text-align: center; color: #94a3b8;">No invoices issued yet.</td></tr>`;

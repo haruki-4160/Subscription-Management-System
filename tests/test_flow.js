@@ -185,6 +185,41 @@ async function runTests() {
   assert.strictEqual(emailLog.status, 'SENT', 'Email log status should be SENT');
   console.log(`✓ Transactional Email dispatched and logged: ${emailLog.template} (ID: ${emailLog.id})`);
 
+  // Test 12: PDF Document Generation for Invoices & Quotations
+  console.log('Test 12: PDF Generation Service');
+  const { generateInvoicePDF, generateQuotationPDF } = require('../src/services/pdfService');
+  const { Writable } = require('stream');
+
+  function createBufferStream() {
+    const chunks = [];
+    const stream = new Writable({
+      write(chunk, encoding, callback) {
+        chunks.push(chunk);
+        callback();
+      }
+    });
+    return { stream, getBuffer: () => Buffer.concat(chunks) };
+  }
+
+  // 1. Invoice PDF
+  const invBuf = createBufferStream();
+  generateInvoicePDF(invoice, [{ product_name: 'Enterprise ERP', quantity: 1, unit_price: 1200, total_amount: 1200 }], [], invBuf.stream);
+  await new Promise(resolve => invBuf.stream.on('finish', resolve));
+  const invoicePdfData = invBuf.getBuffer();
+  assert.ok(invoicePdfData.length > 500, 'Invoice PDF should contain valid bytes');
+  assert.strictEqual(invoicePdfData.toString('utf8', 0, 4), '%PDF', 'Invoice PDF header must start with %PDF');
+  console.log(`✓ Invoice PDF generated (${invoicePdfData.length} bytes, header: %PDF)`);
+
+  // 2. Quotation PDF
+  const quoteBuf = createBufferStream();
+  const subRecord = db.prepare('SELECT s.*, u.email as customer_email, p.name as plan_name, p.billing_interval FROM subscriptions s JOIN users u ON s.customer_id = u.id JOIN plans p ON s.plan_id = p.id WHERE s.id = ?').get(subId);
+  generateQuotationPDF(subRecord, [{ product_name: 'Enterprise ERP', variant_name: 'Odoo', quantity: 1, unit_price: 1760, amount: 1760 }], quoteBuf.stream);
+  await new Promise(resolve => quoteBuf.stream.on('finish', resolve));
+  const quotePdfData = quoteBuf.getBuffer();
+  assert.ok(quotePdfData.length > 500, 'Quotation PDF should contain valid bytes');
+  assert.strictEqual(quotePdfData.toString('utf8', 0, 4), '%PDF', 'Quotation PDF header must start with %PDF');
+  console.log(`✓ Quotation PDF generated (${quotePdfData.length} bytes, header: %PDF)`);
+
   console.log('\n--- ALL VERIFICATION SUITE TESTS PASSED SUCCESSFULLY! ---');
 }
 

@@ -4,6 +4,7 @@ const db = require('../db');
 const { authMiddleware, requireStaffOrAdmin } = require('../auth');
 const { calculateNextDate } = require('../billingEngine');
 const { sendPaymentReceiptEmail, sendDunningNoticeEmail } = require('../services/emailService');
+const { generateInvoicePDF, generateQuotationPDF } = require('../services/pdfService');
 
 const router = express.Router();
 router.use(authMiddleware, requireStaffOrAdmin);
@@ -169,6 +170,55 @@ router.patch('/invoices/:id/status', (req, res) => {
 
   db.prepare('UPDATE invoices SET status = ? WHERE id = ?').run(status, req.params.id);
   res.json({ message: `Invoice status updated to ${status}` });
+});
+
+// Download / Stream Invoice PDF
+router.get('/invoices/:id/pdf', (req, res) => {
+  const invoice = db.prepare(`
+    SELECT i.*, u.email as customer_email, s.subscription_number
+    FROM invoices i
+    JOIN users u ON i.customer_id = u.id
+    LEFT JOIN subscriptions s ON i.subscription_id = s.id
+    WHERE i.id = ?
+  `).get(req.params.id);
+
+  if (!invoice) {
+    return res.status(404).json({ error: 'Invoice not found.' });
+  }
+
+  const items = db.prepare('SELECT * FROM invoice_items WHERE invoice_id = ?').all(invoice.id);
+  const payments = db.prepare('SELECT * FROM payments WHERE invoice_id = ? ORDER BY payment_date ASC').all(invoice.id);
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="Invoice-${invoice.invoice_number}.pdf"`);
+  generateInvoicePDF(invoice, items, payments, res);
+});
+
+// Download / Stream Quotation / Contract PDF
+router.get('/quotations/:id/pdf', (req, res) => {
+  const sub = db.prepare(`
+    SELECT s.*, u.email as customer_email, p.name as plan_name, p.billing_interval, p.cost as plan_cost
+    FROM subscriptions s
+    JOIN users u ON s.customer_id = u.id
+    JOIN plans p ON s.plan_id = p.id
+    WHERE s.id = ?
+  `).get(req.params.id);
+
+  if (!sub) {
+    return res.status(404).json({ error: 'Quotation not found.' });
+  }
+
+  const items = db.prepare(`
+    SELECT si.*, pr.name as product_name, pv.variant_name
+    FROM subscription_items si
+    JOIN products pr ON si.product_id = pr.id
+    LEFT JOIN product_variants pv ON si.variant_id = pv.id
+    WHERE si.subscription_id = ?
+  `).all(sub.id);
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `inline; filename="Quotation-${sub.subscription_number}.pdf"`);
+  generateQuotationPDF(sub, items, res);
 });
 
 // ================= Payments Recording =================

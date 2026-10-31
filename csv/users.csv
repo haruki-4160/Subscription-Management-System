@@ -1,0 +1,9 @@
+id,email,full_name,company_name,role,is_active,password_plain
+1,admin@recur.io,Sarah Connor (Admin),RECUR Global,admin,TRUE,AdminPass123!
+2,staff@recur.io,Michael Scott (Staff),RECUR Global,staff,TRUE,StaffPass123!
+3,billing@acmecorp.com,Alex Vance,Acme Corp,customer,TRUE,CustomerPass123!
+4,finance@globex.com,Bob Vance,Globex Industries,customer,TRUE,CustomerPass123!
+5,accounts@soylent.io,Carol Danvers,Soylent Tech,customer,TRUE,CustomerPass123!
+6,ops@hooli.xyz,Gavin Belson,Hooli Corp,customer,TRUE,CustomerPass123!
+7,finance@starkindustries.com,Pepper Potts,Stark Industries,customer,TRUE,CustomerPass123!
+8,billing@wayneenterprises.com,Lucius Fox,Wayne Enterprises,customer,TRUE,CustomerPass123!

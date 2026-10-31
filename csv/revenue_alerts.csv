@@ -1,0 +1,5 @@
+id,alert_type,severity,title,message,entity_type,entity_id,revenue_at_risk,is_resolved
+1,MISSED_RENEWAL,HIGH,Missed Renewal Run for Globex Industries,Subscription SUB-2026-0002 reached next_billing_date without recurring invoice generated.,subscription,2,1990.00,FALSE
+2,OVERDUE_INVOICE,CRITICAL,Grace Period Expiration Imminent: Soylent Tech,Invoice INV-2026-0002 ($355.98) is 25 days overdue. Grace cutoff date approaches. Service suspension pending.,invoice,2,355.98,FALSE
+3,EXPIRING_DISCOUNT,MEDIUM,Promotional Discount Expiry in 7 Days: Soylent Tech,Coupon EXPIRINGPROMO (15% off) linked to SUB-2026-0003 expires in 7 days. Account manager outreach recommended.,subscription,3,52.35,FALSE
+4,FAILED_BILLING,HIGH,Payment Gateway Rejection: Soylent Tech,Card processing transaction failed with card issuer rejection code Insufficient Funds.,payment,3,355.98,FALSE

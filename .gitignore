@@ -1,0 +1,18 @@
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# SQLite runtime databases and journals
+*.db-shm
+*.db-wal
+recur_sms.db
+
+# Environment variables
+.env
+.env.local
+
+# Operating System files
+.DS_Store
+Thumbs.db

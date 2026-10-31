@@ -1,0 +1,4 @@
+id,payment_number,customer_name,invoice_number,amount,payment_method,transaction_reference,status,payment_date,notes
+1,PAY-2026-0001,Acme Corp,INV-2026-0001,191.04,credit_card,ch_stripe_seed_acme_001,SUCCESS,2026-09-25 14:22:10,Automated Stripe credit card charge
+2,PAY-2026-0002,Stark Industries,INV-2026-0003,3000.00,bank_transfer,wire_jpmorgan_stark_8841,SUCCESS,2026-10-08 11:15:00,First milestone wire transfer received
+3,PAY-2026-0003,Soylent Tech,INV-2026-0002,355.98,credit_card,ch_stripe_declined_soylent_99,FAILED,2026-10-06 09:00:00,Card charge declined (Insufficient Funds)

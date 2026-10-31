@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RECUR SMS - Subscription Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div style="display: flex; align-items: center; gap: 1.5rem;">
+      <a href="#" class="brand" onclick="navigateTo('home')">
+        <span>⚡ RECUR SMS</span>
+        <span class="brand-badge">Enterprise Engine</span>
+      </a>
+
+      <div class="nav-links" id="main-nav-links">
+        <!-- Rendered dynamically based on role -->
+      </div>
+    </div>
+
+    <div class="user-profile" id="user-profile-section">
+      <!-- User profile info or Login button -->
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Guest / Landing View -->
+    <section id="view-guest" class="view-section active">
+      <div class="card" style="text-align: center; padding: 4rem 2rem;">
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; color: #1e293b;">RECUR SMS</h1>
+        <p style="font-size: 1.15rem; color: #64748b; max-width: 680px; margin: 0 auto 2rem auto; line-height: 1.6;">
+          The unified subscription management platform. From setting up products, variants, and flexible plans to automated billing, zero-omission invoicing, real-time payment reconciliation, and instant executive finance reporting.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center;">
+          <button class="btn btn-primary" style="padding: 0.8rem 1.75rem; font-size: 1rem;" onclick="openAuthModal('login')">Sign In</button>
+          <button class="btn btn-secondary" style="padding: 0.8rem 1.75rem; font-size: 1rem;" onclick="openAuthModal('register')">Create Account</button>
+        </div>
+
+        <div style="margin-top: 3.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; text-align: left;">
+          <div style="padding: 1.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h3 style="font-size: 1.05rem; margin-bottom: 0.5rem; color: #2563eb;">⚡ Automated Invoicing</h3>
+            <p style="font-size: 0.9rem; color: #64748b;">Billing run engine with atomic idempotency locks. Bill hundreds of due subscriptions with zero duplicate invoices or skipped cycles.</p>
+          </div>
+          <div style="padding: 1.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h3 style="font-size: 1.05rem; margin-bottom: 0.5rem; color: #10b981;">🛡️ Strict 3-Tier RBAC</h3>
+            <p style="font-size: 0.9rem; color: #64748b;">Dedicated Admin window for system governance, an internal console for staff day-to-day work, and a self-service customer portal.</p>
+          </div>
+          <div style="padding: 1.5rem; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h3 style="font-size: 1.05rem; margin-bottom: 0.5rem; color: #8b5cf6;">📊 Sub-2-Second Finance Analytics</h3>
+            <p style="font-size: 0.9rem; color: #64748b;">Instant month-end reporting on active MRR, accounts receivable, and overdue tracking with millisecond execution times.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN EXCLUSIVE: Dedicated Automated Invoicing Engine Window -->
+    <section id="view-admin-autoinvoice" class="view-section">
+      <div class="card" style="border: 2px solid #db2777; background: linear-gradient(to right, #fff, #fdf2f8);">
+        <div class="card-header" style="border-bottom-color: #fbcfe8;">
+          <div>
+            <span class="role-badge role-ADMIN" style="margin-bottom: 0.3rem; display: inline-block;">Admin Exclusive Window</span>
+            <h2 class="card-title" style="color: #9d174d;">⚡ Automated Invoicing Engine Control Center</h2>
+          </div>
+          <button class="btn btn-primary" style="background: #db2777;" onclick="triggerAutoBillingRun()">
+            ▶ Run Billing Batch Now
+          </button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1.25rem;">
+          This dedicated control center is visible solely to <strong>ashishsunil4160@gmail.com</strong>. It manages high-frequency billing days, transactional idempotency locks, and batch execution records.
+        </p>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Engine Status</span>
+            <span class="metric-value" style="color: #10b981; font-size: 1.35rem;" id="ai-engine-status">ONLINE (ACTIVE)</span>
+            <span class="metric-desc">Autonomous background cron enabled</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Subscriptions Due Now</span>
+            <span class="metric-value" style="color: #db2777;" id="ai-due-count">0</span>
+            <span class="metric-desc">next_billing_date &le; Today</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Total Invoices Generated</span>
+            <span class="metric-value" id="ai-total-invoices">0</span>
+            <span class="metric-desc">Automated system total</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Total Amount Billed</span>
+            <span class="metric-value" style="color: #2563eb;" id="ai-total-billed">$0.00</span>
+            <span class="metric-desc">Combined batch billing volume</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: 1rem; margin: 1.5rem 0 0.75rem 0; color: #1e293b;">Batch Execution Logs (Idempotency Monitored)</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Batch ID</th>
+                <th>Timestamp</th>
+                <th>Invoices Created</th>
+                <th>Total Billed</th>
+                <th>Execution Details</th>
+              </tr>
+            </thead>
+            <tbody id="ai-batch-logs-tbody">
+              <tr><td colspan="5" style="text-align: center; color: #94a3b8;">No batches recorded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN: Staff Management -->
+    <section id="view-admin-staff" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">👥 Staff Management</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-add-staff')">+ Add Staff Member</button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Only the admin can add and remove staff members by their email. Staff members have day-to-day access to create quotes, manage subscriptions, process invoices, and record payments.
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Email Address</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="staff-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN: Products & Variants Catalog -->
+    <section id="view-admin-products" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📦 Product Catalog & Variants</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-add-product')">+ Add New Product</button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Configure products with sales price, cost price, and pricing variants (e.g., brand variants like "Odoo" adding +560).
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Type</th>
+                <th>Sales Price</th>
+                <th>Cost Price</th>
+                <th>Variants & Adjustments</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="products-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN: Plans & Policies -->
+    <section id="view-admin-plans" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🗓️ Subscription Plans & Lifecycle Policies</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-add-plan')">+ Create New Plan</button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Define billing frequencies (daily, weekly, monthly, yearly), minimum quantities, and plan-by-plan lifecycle rules (auto-close, early closure, pause, renewal).
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Plan Name</th>
+                <th>Billing Interval</th>
+                <th>Cost</th>
+                <th>Min Qty</th>
+                <th>Lifecycle Policies</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="plans-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN: Discounts & Taxes -->
+    <section id="view-admin-discounts" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏷️ Admin Discount Rules</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-add-discount')">+ Create Discount Rule</button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Fixed or percentage discounts with minimum spend/quantity thresholds, date windows, usage quotas, and auto-stop behavior.
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Type & Value</th>
+                <th>Conditions</th>
+                <th>Scope</th>
+                <th>Usage Quota</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="discounts-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🏛️ Tax Rules</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-add-tax')">+ Add Tax Rule</button>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Tax Name</th>
+                <th>Rate Percentage</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="taxes-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN & STAFF: Quotation Templates -->
+    <section id="view-templates" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📋 Quotation Templates</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-add-template')">+ New Quotation Template</button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Sales reps start from templates pre-bundled with products, variants, and plans to prepare fast customer offers.
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Template Name</th>
+                <th>Associated Plan</th>
+                <th>Validity (Days)</th>
+                <th>Bundled Items</th>
+              </tr>
+            </thead>
+            <tbody id="templates-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN & STAFF: Subscriptions & Quotes Management -->
+    <section id="view-subscriptions" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📜 Subscriptions & Quotations</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-add-subscription')">+ New Quote / Subscription</button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Tracks lifecycle: <strong>Draft &rarr; Quotation &rarr; Confirmed &rarr; Active &rarr; Closed</strong>. Anyone on the internal team can see status and update transitions.
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Sub #</th>
+                <th>Customer</th>
+                <th>Plan & Interval</th>
+                <th>Start Date</th>
+                <th>Next Billing Date</th>
+                <th>Status</th>
+                <th>Lifecycle Action</th>
+              </tr>
+            </thead>
+            <tbody id="subscriptions-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN & STAFF: Invoices & Payments -->
+    <section id="view-invoices" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🧾 Invoices & Billing Ledger</h2>
+          <button class="btn btn-primary" onclick="openModal('modal-record-payment')">+ Record Incoming Payment</button>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Review invoices generated automatically on billing day. Confirm, cancel, print, or record incoming payments against invoices.
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Customer</th>
+                <th>Due Date</th>
+                <th>Subtotal</th>
+                <th>Taxes & Disc</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-table-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ADMIN & STAFF: Finance Lead Executive Dashboard -->
+    <section id="view-finance" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">📈 Finance Lead End-of-Month Analytics</h2>
+            <p style="color: #64748b; font-size: 0.85rem; margin-top: 0.2rem;">
+              Instant real-time answers for active subscriptions, realized revenue, receivables, and overdue invoices.
+            </p>
+          </div>
+          <div id="finance-sla-pill" style="font-size: 0.75rem; background: #ecfdf5; color: #047857; padding: 0.4rem 0.8rem; border-radius: 9999px; font-weight: 600;">
+            Benchmark: Calculating...
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="metric-label">Active Subscriptions</span>
+            <span class="metric-value" style="color: #10b981;" id="fin-active-subs">0</span>
+            <span class="metric-desc">Generating recurring revenue</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Realized Revenue</span>
+            <span class="metric-value" style="color: #2563eb;" id="fin-revenue">$0.00</span>
+            <span class="metric-desc">Total payments collected</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Accounts Receivable</span>
+            <span class="metric-value" style="color: #f59e0b;" id="fin-receivables">$0.00</span>
+            <span class="metric-desc">Unpaid confirmed balances</span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Overdue Invoices</span>
+            <span class="metric-value" style="color: #ef4444;" id="fin-overdue-count">0</span>
+            <span class="metric-desc" id="fin-overdue-amt">Amount: $0.00</span>
+          </div>
+        </div>
+
+        <!-- Visual Analytics Graphs -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; margin: 1.75rem 0;">
+          <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 0.95rem; color: var(--text-main);">💰 Revenue Allocation & Capital Aging</h3>
+              <span style="font-size: 0.75rem; color: #64748b;">Current Snapshot</span>
+            </div>
+            <div style="position: relative; height: 260px;">
+              <canvas id="chart-revenue-split"></canvas>
+            </div>
+          </div>
+
+          <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <h3 style="font-size: 0.95rem; color: var(--text-main);">📈 Subscriptions Portfolio by Status</h3>
+              <span style="font-size: 0.75rem; color: #64748b;">Lifecycle Breakdown</span>
+            </div>
+            <div style="position: relative; height: 260px;">
+              <canvas id="chart-subscription-status"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 1rem; margin: 1.5rem 0 0.75rem 0; color: #1e293b;">⚠️ Outstanding Overdue Invoices (Priority Chase List)</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Customer</th>
+                <th>Due Date</th>
+                <th>Overdue Amount</th>
+              </tr>
+            </thead>
+            <tbody id="fin-overdue-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="font-size: 1rem; margin: 2rem 0 0.75rem 0; color: #1e293b;">💳 Recent Payment Receipts</h3>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Tx Reference</th>
+                <th>Invoice #</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="fin-payments-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- CUSTOMER PORTAL: My Subscriptions & Invoices -->
+    <section id="view-customer" class="view-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">📦 My Subscriptions</h2>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          View and manage your active plans, billing cycle, and line items without having to email support.
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Subscription #</th>
+                <th>Plan Name</th>
+                <th>Interval</th>
+                <th>Next Billing Date</th>
+                <th>Status</th>
+                <th>Self-Service Action</th>
+              </tr>
+            </thead>
+            <tbody id="customer-subs-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">🧾 My Invoices & Receipts</h2>
+        </div>
+        <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 1rem;">
+          Track payment receipts and pay pending subscription invoices via our demo payment portal.
+        </p>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>Invoice #</th>
+                <th>Issue Date</th>
+                <th>Due Date</th>
+                <th>Total Amount</th>
+                <th>Paid Amount</th>
+                <th>Status</th>
+                <th>Payment / Action</th>
+              </tr>
+            </thead>
+            <tbody id="customer-invoices-tbody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- Auth Modal -->
+  <div id="modal-auth" class="modal-overlay">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="card-title" id="auth-modal-title">Sign In to RECUR SMS</h3>
+        <button class="close-btn" onclick="closeModal('modal-auth')">&times;</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="form-login" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="login-email" required placeholder="name@company.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" required placeholder="Enter password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Sign In</button>
+        <div style="margin-top: 1rem; display: flex; justify-content: space-between; font-size: 0.85rem;">
+          <a href="#" style="color: var(--primary);" onclick="showAuthMode('register')">Need an account? Sign Up</a>
+          <a href="#" style="color: var(--text-muted);" onclick="showAuthMode('forgot')">Forgot password?</a>
+        </div>
+      </form>
+
+      <!-- Register Form -->
+      <form id="form-register" style="display: none;" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" required placeholder="name@company.com">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" required placeholder="Enter strong password">
+          <small style="font-size: 0.75rem; color: #64748b; display: block; margin-top: 0.3rem;">
+            Must be >8 characters, with 1 uppercase, 1 lowercase & 1 special character.
+          </small>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Create Account</button>
+        <div style="margin-top: 1rem; text-align: center; font-size: 0.85rem;">
+          <a href="#" style="color: var(--primary);" onclick="showAuthMode('login')">Already registered? Sign In</a>
+        </div>
+      </form>
+
+      <!-- Forgot Password Form -->
+      <form id="form-forgot" style="display: none;" onsubmit="handleForgotPassword(event)">
+        <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1rem;">
+          Enter your registered email and we'll dispatch a secure reset link.
+        </p>
+        <div class="form-group">
+          <label>Registered Email</label>
+          <input type="email" id="forgot-email" required placeholder="name@company.com">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;">Send Reset Link</button>
+        <div id="reset-link-display" style="display: none; margin-top: 1rem; padding: 0.8rem; background: #f1f5f9; border-radius: 6px; font-size: 0.8rem; word-break: break-all;"></div>
+        <div style="margin-top: 1rem; text-align: center; font-size: 0.85rem;">
+          <a href="#" style="color: var(--primary);" onclick="showAuthMode('login')">Back to Sign In</a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Modal: Add Staff -->
+  <div id="modal-add-staff" class="modal-overlay">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="card-title">Add Staff Member</h3>
+        <button class="close-btn" onclick="closeModal('modal-add-staff')">&times;</button>
+      </div>
+      <form onsubmit="handleAddStaff(event)">
+        <div class="form-group">
+          <label>Staff Member Email</label>
+          <input type="email" id="staff-input-email" required placeholder="colleague@company.com">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Grant Staff Access</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Product & Variants -->
+  <div id="modal-add-product" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="card-title">Add Product & Variants</h3>
+        <button class="close-btn" onclick="closeModal('modal-add-product')">&times;</button>
+      </div>
+      <form onsubmit="handleAddProduct(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Product Name</label>
+            <input type="text" id="prod-name" required placeholder="e.g. Enterprise Cloud Suite">
+          </div>
+          <div class="form-group">
+            <label>Product Type</label>
+            <select id="prod-type">
+              <option value="Service">Service</option>
+              <option value="Digital">Digital</option>
+              <option value="Physical">Physical</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Sales Price ($)</label>
+            <input type="number" step="0.01" id="prod-sales-price" required placeholder="1000">
+          </div>
+          <div class="form-group">
+            <label>Cost Price ($)</label>
+            <input type="number" step="0.01" id="prod-cost-price" placeholder="400">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Internal Notes</label>
+          <textarea id="prod-notes" rows="2" placeholder="Product details and specifications"></textarea>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
+          <label style="font-weight: 600;">Optional Pricing Variant (e.g. Brand Variant)</label>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Variant Name (e.g. Odoo)</label>
+              <input type="text" id="prod-var-name" placeholder="Odoo">
+            </div>
+            <div class="form-group">
+              <label>Price Adjustment ($ e.g. 560)</label>
+              <input type="number" step="0.01" id="prod-var-adj" placeholder="560">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Product</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Plan -->
+  <div id="modal-add-plan" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="card-title">Create Subscription Plan</h3>
+        <button class="close-btn" onclick="closeModal('modal-add-plan')">&times;</button>
+      </div>
+      <form onsubmit="handleAddPlan(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Plan Name</label>
+            <input type="text" id="plan-name" required placeholder="e.g. Professional Monthly">
+          </div>
+          <div class="form-group">
+            <label>Cost ($)</label>
+            <input type="number" step="0.01" id="plan-cost" required placeholder="150">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Billing Frequency</label>
+            <select id="plan-interval">
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly" selected>Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Minimum Quantity</label>
+            <input type="number" id="plan-min-qty" value="1" min="1">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Available From</label>
+            <input type="date" id="plan-avail-from">
+          </div>
+          <div class="form-group">
+            <label>Available To</label>
+            <input type="date" id="plan-avail-to">
+          </div>
+        </div>
+
+        <div style="background: #f8fafc; padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+          <label style="font-weight: 600; margin-bottom: 0.75rem;">Plan Lifecycle Rules</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem;">
+            <label style="display: flex; align-items: center; gap: 0.4rem;">
+              <input type="checkbox" id="plan-auto-close" style="width: auto;"> Auto-close on end date
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.4rem;">
+              <input type="checkbox" id="plan-allow-early" checked style="width: auto;"> Allow early close
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.4rem;">
+              <input type="checkbox" id="plan-allow-pause" checked style="width: auto;"> Allow pause
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.4rem;">
+              <input type="checkbox" id="plan-allow-renewal" checked style="width: auto;"> Allow renewal
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Create Plan</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Discount Rule -->
+  <div id="modal-add-discount" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="card-title">Create Admin Discount Rule</h3>
+        <button class="close-btn" onclick="closeModal('modal-add-discount')">&times;</button>
+      </div>
+      <form onsubmit="handleAddDiscount(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Discount Code</label>
+            <input type="text" id="disc-code" required placeholder="e.g. SEATS20">
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select id="disc-type">
+              <option value="PERCENTAGE">Percentage (%)</option>
+              <option value="FIXED">Fixed Amount ($)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Discount Value</label>
+            <input type="number" step="0.01" id="disc-val" required placeholder="20">
+          </div>
+          <div class="form-group">
+            <label>Scope</label>
+            <select id="disc-scope">
+              <option value="SUBSCRIPTION">Whole Subscription</option>
+              <option value="PRODUCT">Specific Product</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Min Purchase Amount ($)</label>
+            <input type="number" step="0.01" id="disc-min-spend" value="0">
+          </div>
+          <div class="form-group">
+            <label>Max Usage Count (0 for unlimited)</label>
+            <input type="number" id="disc-max-limit" value="0">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Save Discount Rule</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Tax Rule -->
+  <div id="modal-add-tax" class="modal-overlay">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modal-header">
+        <h3 class="card-title">Add Tax Rule</h3>
+        <button class="close-btn" onclick="closeModal('modal-add-tax')">&times;</button>
+      </div>
+      <form onsubmit="handleAddTax(event)">
+        <div class="form-group">
+          <label>Tax Name</label>
+          <input type="text" id="tax-name" required placeholder="e.g. GST / VAT">
+        </div>
+        <div class="form-group">
+          <label>Rate Percentage (%)</label>
+          <input type="number" step="0.01" id="tax-rate" required placeholder="18">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Save Tax Rule</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: New Quotation / Subscription -->
+  <div id="modal-add-subscription" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="card-title">Create Quotation / Subscription</h3>
+        <button class="close-btn" onclick="closeModal('modal-add-subscription')">&times;</button>
+      </div>
+      <form onsubmit="handleAddSubscription(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Customer</label>
+            <select id="sub-customer" required></select>
+          </div>
+          <div class="form-group">
+            <label>Subscription Plan</label>
+            <select id="sub-plan" required onchange="handlePlanSelection(this.value)"></select>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="sub-start-date" required>
+          </div>
+          <div class="form-group">
+            <label>Payment Terms</label>
+            <select id="sub-terms">
+              <option value="Immediate">Immediate</option>
+              <option value="Net 15">Net 15 Days</option>
+              <option value="Net 30">Net 30 Days</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem;">
+          <label style="font-weight: 600;">Subscription Line Item</label>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Product</label>
+              <select id="sub-item-prod" onchange="updateVariantOptions(this.value)"></select>
+            </div>
+            <div class="form-group">
+              <label>Variant</label>
+              <select id="sub-item-var"></select>
+            </div>
+            <div class="form-group">
+              <label>Quantity</label>
+              <input type="number" id="sub-item-qty" value="1" min="1">
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Create in Draft Status</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Record Payment (Staff) -->
+  <div id="modal-record-payment" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="card-title">Record Incoming Payment</h3>
+        <button class="close-btn" onclick="closeModal('modal-record-payment')">&times;</button>
+      </div>
+      <form onsubmit="handleRecordPayment(event)">
+        <div class="form-group">
+          <label>Target Invoice</label>
+          <select id="pay-invoice-select" required onchange="updateInvoicePayAmount(this.value)"></select>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Payment Method</label>
+            <select id="pay-method">
+              <option value="UPI">UPI</option>
+              <option value="NETBANKING">Netbanking</option>
+              <option value="CARD">Debit/Credit Card</option>
+              <option value="QR">QR Code</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount Received ($)</label>
+            <input type="number" step="0.01" id="pay-amount" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Reference Note</label>
+          <input type="text" id="pay-note" placeholder="Bank transaction ID / check number">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Record & Reconcile Payment</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Customer Demo Payment Gateway -->
+  <div id="modal-customer-pay" class="modal-overlay">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="card-title">⚡ RECUR SMS Demo Checkout</h3>
+        <button class="close-btn" onclick="closeModal('modal-customer-pay')">&times;</button>
+      </div>
+      <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+          <span style="color: #64748b;">Invoice Reference:</span>
+          <strong id="demo-pay-inv-num">INV-0000</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 1.15rem; margin-top: 0.5rem;">
+          <span>Total Balance Due:</span>
+          <strong style="color: #2563eb;" id="demo-pay-amount">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="payment-methods-grid">
+        <div class="payment-tab selected" id="tab-pay-upi" onclick="selectPaymentMethod('UPI')">
+          📱 <strong>UPI</strong>
+        </div>
+        <div class="payment-tab" id="tab-pay-qr" onclick="selectPaymentMethod('QR')">
+          📷 <strong>QR Code</strong>
+        </div>
+        <div class="payment-tab" id="tab-pay-card" onclick="selectPaymentMethod('CARD')">
+          💳 <strong>Card</strong>
+        </div>
+        <div class="payment-tab" id="tab-pay-net" onclick="selectPaymentMethod('NETBANKING')">
+          🏦 <strong>Netbanking</strong>
+        </div>
+      </div>
+
+      <div class="payment-box" id="pay-method-view">
+        <!-- Rendered based on selected payment method -->
+      </div>
+
+      <button class="btn btn-success" style="width: 100%; padding: 0.8rem; font-size: 1rem;" onclick="executeDemoPayment()">
+        Simulate Successful Payment
+      </button>
+      <small style="display: block; text-align: center; color: #94a3b8; margin-top: 0.6rem;">
+        * Decoupled architecture: Ready for real payment gateway API integration.
+      </small>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- App Script -->
+  <script src="/js/app.js"></script>
+</body>
+</html>

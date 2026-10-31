@@ -1,0 +1,6 @@
+id,invoice_number,subscription_number,customer_name,period_start,period_end,due_date,status,subtotal,discount_amount,tax_amount,total_amount,paid_amount,balance_due,test_scenario
+1,INV-2026-0001,SUB-2026-0001,Acme Corp,2026-09-21,2026-10-20,2026-10-05,PAID,199.00,39.80,31.84,191.04,191.04,0.00,Fully settled via Stripe credit card
+2,INV-2026-0002,SUB-2026-0003,Soylent Tech,2026-09-21,2026-10-21,2026-10-06,OVERDUE,349.00,52.35,59.33,355.98,0.00,355.98,Unpaid 25 days overdue - in Dunning grace period
+3,INV-2026-0003,SUB-2026-0005,Stark Industries,2026-10-01,2027-10-01,2026-10-15,PARTIALLY_PAID,5600.00,560.00,428.40,5468.40,3000.00,2468.40,Partial allocation of $3000 wire transfer leaving $2468.40 balance
+4,INV-2026-0004,SUB-2026-0001,Acme Corp,2026-10-21,2026-11-20,2026-11-05,POSTED,199.00,39.80,31.84,191.04,0.00,191.04,Active current billing cycle invoice due in 5 days
+5,INV-2026-0005,SUB-2026-0001,Acme Corp,2026-08-21,2026-09-20,2026-09-05,VOID,199.00,0.00,39.80,238.80,0.00,238.80,Voided invoice from prior corrected billing run

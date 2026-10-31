@@ -1,0 +1,465 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@recur.io",
+      "fullName": "Sarah Connor (Admin)",
+      "companyName": "RECUR Global",
+      "role": "admin",
+      "passwordPlain": "AdminPass123!"
+    },
+    {
+      "id": 2,
+      "email": "staff@recur.io",
+      "fullName": "Michael Scott (Staff)",
+      "companyName": "RECUR Global",
+      "role": "staff",
+      "passwordPlain": "StaffPass123!"
+    },
+    {
+      "id": 3,
+      "email": "billing@acmecorp.com",
+      "fullName": "Alex Vance",
+      "companyName": "Acme Corp",
+      "role": "customer",
+      "passwordPlain": "CustomerPass123!"
+    },
+    {
+      "id": 4,
+      "email": "finance@globex.com",
+      "fullName": "Bob Vance",
+      "companyName": "Globex Industries",
+      "role": "customer",
+      "passwordPlain": "CustomerPass123!"
+    },
+    {
+      "id": 5,
+      "email": "accounts@soylent.io",
+      "fullName": "Carol Danvers",
+      "companyName": "Soylent Tech",
+      "role": "customer",
+      "passwordPlain": "CustomerPass123!"
+    },
+    {
+      "id": 6,
+      "email": "ops@hooli.xyz",
+      "fullName": "Gavin Belson",
+      "companyName": "Hooli Corp",
+      "role": "customer",
+      "passwordPlain": "CustomerPass123!"
+    },
+    {
+      "id": 7,
+      "email": "finance@starkindustries.com",
+      "fullName": "Pepper Potts",
+      "companyName": "Stark Industries",
+      "role": "customer",
+      "passwordPlain": "CustomerPass123!"
+    },
+    {
+      "id": 8,
+      "email": "billing@wayneenterprises.com",
+      "fullName": "Lucius Fox",
+      "companyName": "Wayne Enterprises",
+      "role": "customer",
+      "passwordPlain": "CustomerPass123!"
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "code": "PROD_CLOUD_PLATFORM",
+      "name": "Enterprise Cloud Platform",
+      "description": "Dedicated Kubernetes compute cluster with automated high availability",
+      "variants": [
+        {
+          "id": 1,
+          "sku": "VAR_POD_STARTER",
+          "name": "Starter Pod (4 vCPU / 16GB RAM)",
+          "priceDelta": 0.00
+        },
+        {
+          "id": 2,
+          "sku": "VAR_POD_SCALE",
+          "name": "Scale Pod (16 vCPU / 64GB RAM)",
+          "priceDelta": 150.00
+        },
+        {
+          "id": 3,
+          "sku": "VAR_POD_HYPER",
+          "name": "Hyper Pod (64 vCPU / 256GB RAM)",
+          "priceDelta": 600.00
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "code": "PROD_API_GATEWAY",
+      "name": "API Acceleration Gateway",
+      "description": "Ultra-low latency globally distributed API mesh",
+      "variants": [
+        {
+          "id": 4,
+          "sku": "VAR_API_STANDARD",
+          "name": "Standard Throughput (25k req/min)",
+          "priceDelta": 0.00
+        },
+        {
+          "id": 5,
+          "sku": "VAR_API_HIGH",
+          "name": "High Throughput (100k req/min)",
+          "priceDelta": 200.00
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "code": "PROD_SECURITY_SUITE",
+      "name": "Zero-Trust Security & Compliance",
+      "description": "Continuous compliance monitoring, audit log vaults, and automated threat defense",
+      "variants": [
+        {
+          "id": 6,
+          "sku": "VAR_SEC_SOC2",
+          "name": "SOC2 Type II Continuous Monitor",
+          "priceDelta": 100.00
+        },
+        {
+          "id": 7,
+          "sku": "VAR_SEC_HIPAA",
+          "name": "HIPAA & GDPR Enterprise Guard",
+          "priceDelta": 250.00
+        }
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "id": 1,
+      "productId": 1,
+      "code": "PLAN_CLOUD_MONTHLY",
+      "name": "Cloud Platform Monthly",
+      "billingInterval": "monthly",
+      "intervalCount": 1,
+      "basePrice": 199.00,
+      "setupFee": 50.00,
+      "trialDays": 14
+    },
+    {
+      "id": 2,
+      "productId": 1,
+      "code": "PLAN_CLOUD_ANNUAL",
+      "name": "Cloud Platform Annual (Save 20%)",
+      "billingInterval": "annual",
+      "intervalCount": 1,
+      "basePrice": 1990.00,
+      "setupFee": 0.00,
+      "trialDays": 30
+    },
+    {
+      "id": 3,
+      "productId": 2,
+      "code": "PLAN_API_MONTHLY",
+      "name": "API Gateway Pro Monthly",
+      "billingInterval": "monthly",
+      "intervalCount": 1,
+      "basePrice": 149.00,
+      "setupFee": 0.00,
+      "trialDays": 0
+    },
+    {
+      "id": 4,
+      "productId": 3,
+      "code": "PLAN_SEC_ANNUAL",
+      "name": "Zero-Trust Security Annual",
+      "billingInterval": "annual",
+      "intervalCount": 1,
+      "basePrice": 1200.00,
+      "setupFee": 100.00,
+      "trialDays": 14
+    },
+    {
+      "id": 5,
+      "productId": 1,
+      "code": "PLAN_SANDBOX_WEEKLY",
+      "name": "Developer Sandbox Pilot",
+      "billingInterval": "weekly",
+      "intervalCount": 1,
+      "basePrice": 49.00,
+      "setupFee": 0.00,
+      "trialDays": 7
+    }
+  ],
+  "discounts": [
+    {
+      "id": 1,
+      "code": "EARLYBIRD20",
+      "name": "Early Bird 20% Discount",
+      "discountType": "percentage",
+      "value": 20.0,
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "code": "EXPIRINGPROMO",
+      "name": "Q4 Retention Incentive (15%)",
+      "discountType": "percentage",
+      "value": 15.0,
+      "startDate": "2026-10-01",
+      "endDate": "2026-11-07",
+      "isActive": true
+    },
+    {
+      "id": 3,
+      "code": "STARTUP50",
+      "name": "$50 Onboarding Credit",
+      "discountType": "fixed_amount",
+      "value": 50.0,
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "isActive": true
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": 1,
+      "subscriptionNumber": "SUB-2026-0001",
+      "customerId": 3,
+      "customerName": "Acme Corp",
+      "planCode": "PLAN_CLOUD_MONTHLY",
+      "variantSku": "VAR_POD_STARTER",
+      "status": "ACTIVE",
+      "cadence": "monthly",
+      "currentPeriodStart": "2026-10-21",
+      "currentPeriodEnd": "2026-11-20",
+      "nextBillingDate": "2026-11-20",
+      "autoRenew": true,
+      "notes": "Healthy active customer with on-time recurring payments."
+    },
+    {
+      "id": 2,
+      "subscriptionNumber": "SUB-2026-0002",
+      "customerId": 4,
+      "customerName": "Globex Industries",
+      "planCode": "PLAN_CLOUD_ANNUAL",
+      "variantSku": "VAR_POD_SCALE",
+      "status": "ACTIVE",
+      "cadence": "annual",
+      "currentPeriodStart": "2025-10-28",
+      "currentPeriodEnd": "2026-10-28",
+      "nextBillingDate": "2026-10-28",
+      "autoRenew": true,
+      "notes": "MISSED RENEWAL: Renewal date passed 3 days ago without invoice generation. Triggers Revenue Alert."
+    },
+    {
+      "id": 3,
+      "subscriptionNumber": "SUB-2026-0003",
+      "customerId": 5,
+      "customerName": "Soylent Tech",
+      "planCode": "PLAN_CLOUD_MONTHLY",
+      "variantSku": "VAR_POD_SCALE",
+      "status": "IN_GRACE_PERIOD",
+      "cadence": "monthly",
+      "currentPeriodStart": "2026-09-21",
+      "currentPeriodEnd": "2026-10-21",
+      "nextBillingDate": "2026-10-21",
+      "gracePeriodEndDate": "2026-11-05",
+      "discountCode": "EXPIRINGPROMO",
+      "discountExpiryDate": "2026-11-07",
+      "autoRenew": true,
+      "notes": "CRITICAL RISK: Unpaid overdue invoice (INV-2026-0002) past 25 days, plus expiring promo discount in 7 days."
+    },
+    {
+      "id": 4,
+      "subscriptionNumber": "SUB-2026-0004",
+      "customerId": 6,
+      "customerName": "Hooli Corp",
+      "planCode": "PLAN_API_MONTHLY",
+      "variantSku": "VAR_API_STANDARD",
+      "status": "PAUSED",
+      "cadence": "monthly",
+      "currentPeriodStart": "2026-09-01",
+      "currentPeriodEnd": "2026-10-01",
+      "pauseStartDate": "2026-09-25",
+      "nextBillingDate": "2026-11-15",
+      "autoRenew": true,
+      "notes": "Paused subscription awaiting internal infrastructure migration."
+    },
+    {
+      "id": 5,
+      "subscriptionNumber": "SUB-2026-0005",
+      "customerId": 7,
+      "customerName": "Stark Industries",
+      "planCode": "PLAN_CLOUD_ANNUAL",
+      "variantSku": "VAR_POD_HYPER",
+      "status": "ACTIVE",
+      "cadence": "annual",
+      "currentPeriodStart": "2026-10-01",
+      "currentPeriodEnd": "2027-10-01",
+      "nextBillingDate": "2027-10-01",
+      "autoRenew": true,
+      "notes": "High-value enterprise contract ($5,468.40) with partial payment of $3,000 received."
+    },
+    {
+      "id": 6,
+      "subscriptionNumber": "SUB-2026-0006",
+      "customerId": 8,
+      "customerName": "Wayne Enterprises",
+      "planCode": "PLAN_CLOUD_MONTHLY",
+      "variantSku": "VAR_POD_STARTER",
+      "status": "CANCELED",
+      "cadence": "monthly",
+      "currentPeriodStart": "2026-07-01",
+      "currentPeriodEnd": "2026-08-01",
+      "cancellationReason": "Migrated internal workloads to private cloud infrastructure cluster.",
+      "canceledAt": "2026-08-01T17:00:00Z",
+      "autoRenew": false,
+      "notes": "Clean cancellation workflow with reason tracking."
+    }
+  ],
+  "invoices": [
+    {
+      "id": 1,
+      "invoiceNumber": "INV-2026-0001",
+      "subscriptionNumber": "SUB-2026-0001",
+      "customerName": "Acme Corp",
+      "billingPeriod": "2026-09-21 to 2026-10-20",
+      "dueDate": "2026-10-05",
+      "status": "PAID",
+      "subtotal": 199.00,
+      "discountAmount": 39.80,
+      "taxAmount": 31.84,
+      "totalAmount": 191.04,
+      "paidAmount": 191.04,
+      "balanceDue": 0.00
+    },
+    {
+      "id": 2,
+      "invoiceNumber": "INV-2026-0002",
+      "subscriptionNumber": "SUB-2026-0003",
+      "customerName": "Soylent Tech",
+      "billingPeriod": "2026-09-21 to 2026-10-21",
+      "dueDate": "2026-10-06",
+      "status": "OVERDUE",
+      "subtotal": 349.00,
+      "discountAmount": 52.35,
+      "taxAmount": 59.33,
+      "totalAmount": 355.98,
+      "paidAmount": 0.00,
+      "balanceDue": 355.98
+    },
+    {
+      "id": 3,
+      "invoiceNumber": "INV-2026-0003",
+      "subscriptionNumber": "SUB-2026-0005",
+      "customerName": "Stark Industries",
+      "billingPeriod": "2026-10-01 to 2027-10-01",
+      "dueDate": "2026-10-15",
+      "status": "PARTIALLY_PAID",
+      "subtotal": 5600.00,
+      "discountAmount": 560.00,
+      "taxAmount": 428.40,
+      "totalAmount": 5468.40,
+      "paidAmount": 3000.00,
+      "balanceDue": 2468.40
+    },
+    {
+      "id": 4,
+      "invoiceNumber": "INV-2026-0004",
+      "subscriptionNumber": "SUB-2026-0001",
+      "customerName": "Acme Corp",
+      "billingPeriod": "2026-10-21 to 2026-11-20",
+      "dueDate": "2026-11-05",
+      "status": "POSTED",
+      "subtotal": 199.00,
+      "discountAmount": 39.80,
+      "taxAmount": 31.84,
+      "totalAmount": 191.04,
+      "paidAmount": 0.00,
+      "balanceDue": 191.04
+    }
+  ],
+  "payments": [
+    {
+      "id": 1,
+      "paymentNumber": "PAY-2026-0001",
+      "customerName": "Acme Corp",
+      "invoiceNumber": "INV-2026-0001",
+      "amount": 191.04,
+      "method": "credit_card",
+      "reference": "ch_stripe_seed_acme_001",
+      "status": "SUCCESS",
+      "date": "2026-09-25T14:22:10Z"
+    },
+    {
+      "id": 2,
+      "paymentNumber": "PAY-2026-0002",
+      "customerName": "Stark Industries",
+      "invoiceNumber": "INV-2026-0003",
+      "amount": 3000.00,
+      "method": "bank_transfer",
+      "reference": "wire_jpmorgan_stark_8841",
+      "status": "SUCCESS",
+      "date": "2026-10-08T11:15:00Z"
+    },
+    {
+      "id": 3,
+      "paymentNumber": "PAY-2026-0003",
+      "customerName": "Soylent Tech",
+      "invoiceNumber": "INV-2026-0002",
+      "amount": 355.98,
+      "method": "credit_card",
+      "reference": "ch_stripe_declined_soylent_99",
+      "status": "FAILED",
+      "date": "2026-10-06T09:00:00Z"
+    }
+  ],
+  "revenueAlerts": [
+    {
+      "id": 1,
+      "alertType": "MISSED_RENEWAL",
+      "severity": "HIGH",
+      "title": "Missed Renewal Run for Globex Industries",
+      "message": "Subscription SUB-2026-0002 reached next_billing_date (2026-10-28) 3 days ago, but no recurring invoice was emitted by the automated engine.",
+      "entityType": "subscription",
+      "entityId": 2,
+      "revenueAtRisk": 1990.00,
+      "isResolved": false
+    },
+    {
+      "id": 2,
+      "alertType": "OVERDUE_INVOICE",
+      "severity": "CRITICAL",
+      "title": "Grace Period Expiration Imminent: Soylent Tech",
+      "message": "Invoice INV-2026-0002 ($355.98) is 25 days overdue. Grace period expires in 5 days (2026-11-05). Outright service suspension pending.",
+      "entityType": "invoice",
+      "entityId": 2,
+      "revenueAtRisk": 355.98,
+      "isResolved": false
+    },
+    {
+      "id": 3,
+      "alertType": "EXPIRING_DISCOUNT",
+      "severity": "MEDIUM",
+      "title": "Promotional Discount Expiry in 7 Days: Soylent Tech",
+      "message": "Promotional discount coupon EXPIRINGPROMO (15% off) linked to SUB-2026-0003 expires on 2026-11-07. Account manager outreach recommended to mitigate renewal price shock.",
+      "entityType": "subscription",
+      "entityId": 3,
+      "revenueAtRisk": 52.35,
+      "isResolved": false
+    },
+    {
+      "id": 4,
+      "alertType": "FAILED_BILLING",
+      "severity": "HIGH",
+      "title": "Payment Gateway Rejection: Soylent Tech",
+      "message": "Card processing transaction ch_stripe_declined_soylent_99 failed due to Insufficient Funds on invoice INV-2026-0002.",
+      "entityType": "payment",
+      "entityId": 3,
+      "revenueAtRisk": 355.98,
+      "isResolved": false
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+id,subscription_number,customer_name,plan_code,variant_sku,status,billing_interval,period_start,period_end,next_billing_date,discount_applied,auto_renew,test_scenario
+1,SUB-2026-0001,Acme Corp,PLAN_CLOUD_MONTHLY,VAR_POD_STARTER,ACTIVE,monthly,2026-10-21,2026-11-20,2026-11-20,EARLYBIRD20,TRUE,Healthy active customer with on-time recurring payments
+2,SUB-2026-0002,Globex Industries,PLAN_CLOUD_ANNUAL,VAR_POD_SCALE,ACTIVE,annual,2025-10-28,2026-10-28,2026-10-28,NONE,TRUE,Missed Renewal scenario (next_billing_date 3 days overdue)
+3,SUB-2026-0003,Soylent Tech,PLAN_CLOUD_MONTHLY,VAR_POD_SCALE,IN_GRACE_PERIOD,monthly,2026-09-21,2026-10-21,2026-10-21,EXPIRINGPROMO,TRUE,Critical grace period (25-day overdue invoice INV-2026-0002 + expiring promo)
+4,SUB-2026-0004,Hooli Corp,PLAN_API_MONTHLY,VAR_API_STANDARD,PAUSED,monthly,2026-09-01,2026-10-01,2026-11-15,NONE,TRUE,Paused subscription awaiting client migration
+5,SUB-2026-0005,Stark Industries,PLAN_CLOUD_ANNUAL,VAR_POD_HYPER,ACTIVE,annual,2026-10-01,2027-10-01,2027-10-01,ENTERPRISE30,TRUE,High-value enterprise tier ($5468.40) with partial wire payment
+6,SUB-2026-0006,Wayne Enterprises,PLAN_CLOUD_MONTHLY,VAR_POD_STARTER,CANCELED,monthly,2026-07-01,2026-08-01,2026-08-01,NONE,FALSE,Canceled subscription with audited cancellation reason
